@@ -7,7 +7,9 @@ import { ILoginUser } from './auth.interface';
 import { User } from '../user/user.model';
 
 const loginUser = async (payload: ILoginUser) => {
-  const user = await User.findOne({ email: payload?.email }).select('+password');
+  const user = await User.findOne({ email: payload?.email }).select(
+    '+password',
+  );
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
   }
@@ -22,7 +24,7 @@ const loginUser = async (payload: ILoginUser) => {
   }
 
   const jwtPayload = {
-    userId: user._id.toString(), 
+    email: user?.email,
     role: user?.role ?? 'user',
   };
 
@@ -32,8 +34,15 @@ const loginUser = async (payload: ILoginUser) => {
     config.jwt_access_expires_in as string,
   );
 
+  const refreshToken = createToken(
+    jwtPayload,
+    config.jwt_refresh_secret as string,
+    config.jwt_refresh_expires_in as string,
+  );
+
   return {
     accessToken,
+    refreshToken,
   };
 };
 
