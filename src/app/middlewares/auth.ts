@@ -5,6 +5,7 @@ import catchAsync from '../utils/catchAsync';
 import AppError from '../errors/AppError';
 import config from '../config';
 import { TUserRole } from '../modules/user/user.interface';
+import { User } from '../modules/user/user.model';
 
 
 const authorize = (...requiredRole: TUserRole[]) => {
@@ -15,30 +16,39 @@ const authorize = (...requiredRole: TUserRole[]) => {
       throw new AppError(StatusCodes.UNAUTHORIZED, 'you are UNAUTHORIZED');
     }
 
-    jwt.verify(
+    //checking if the token valid
+
+    const decoded = jwt.verify(
       token,
       config.jwt_access_secret as string,
-      function (err, decoded) {
-        if (err) {
-          throw new AppError(StatusCodes.UNAUTHORIZED, 'you are UNAUTHORIZED');
-        }
+    ) as JwtPayload;
 
-        const role = (decoded as JwtPayload).role;
+    const {role , email} = decoded; 
 
-        if (requiredRole && !requiredRole.includes(role)) {
-          throw new AppError(
-            StatusCodes.UNAUTHORIZED,
-            'you are not authorized',
-          );
-        }
-        //decoded
-        req.user = decoded as JwtPayload;
+    // Check if the user exists
+    const user = await User.findOne({email});
 
-        next();
-      },
-    );
+    if (!user) {
+      throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+    }
+
+    // Check if the user is blocked
+    const isBlocked = user?.isBlocked;
+    if (isBlocked) {
+      throw new AppError(StatusCodes.FORBIDDEN, 'This user is blocked');
+    }
+
+    if (requiredRole && !requiredRole.includes(role)) {
+      throw new AppError(StatusCodes.UNAUTHORIZED, 'you are not authorized');
+    }
+    //decoded
+    req.user = decoded as JwtPayload;
+
+    next();
   });
 };
+
+
 
 
 

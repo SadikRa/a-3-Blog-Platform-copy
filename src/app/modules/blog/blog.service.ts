@@ -53,16 +53,16 @@ const deleteBlogFromDB = async (blogId: string) => {
   return { success: true };
 };
 
-// Get all blogs
+//get all blogs
 const getAllBlogFromDB = async (query: Record<string, unknown>) => {
   const blogQuery = new QueryBuilder(Blog.find().populate('author'), query)
     .search(blogSearchableFields)
-    .filter() // No need to pass filterableFields here
+    .filter()
     .sort()
     .paginate()
     .fields();
 
-  const result = await blogQuery.queryResult();
+  const result = await blogQuery.modelQuery;
   return result;
 };
 

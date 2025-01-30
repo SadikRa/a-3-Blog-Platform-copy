@@ -63,11 +63,6 @@ class QueryBuilder<T> {
     this.modelQuery = this.modelQuery.select(fields);
     return this;
   }
-
-  // Add this method to return the final query result
-  async queryResult(): Promise<T[]> {
-    return await this.modelQuery.exec();
-  }
 }
 
 export default QueryBuilder;

@@ -31,7 +31,7 @@ router.delete(
 );
 
 // get all blog
-router.get('/blogs', blogController.getAllBlogs);
+router.get('/blogs',  blogController.getAllBlogs);
 
 
 export const blogRoutes = router;
