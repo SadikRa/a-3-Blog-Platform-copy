@@ -1,24 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from 'http-status-codes';
 import { IBlog } from './blog.interface';
 import { Blog } from './blog.model';
 import AppError from '../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
-import { blogSearchableFields, filterableFields } from './blog.constant';
+import { blogSearchableFields } from './blog.constant';
 
-//create blog
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createBlogIntoDB = async (user: any, payload: IBlog) => {
+// Create blog
+const createBlogIntoDB = async (user: any, data: IBlog) => {
   if (user.role !== 'user') {
     throw new AppError(StatusCodes.FORBIDDEN, 'Only users can create blogs');
   }
 
-  payload.author = user.userId;
-  const result = await Blog.create(payload);
+  data.author = user.email;
+  const result = await Blog.create(data);
 
   return result.populate('author');
 };
 
-//update blog
+// Update blog
 const updateBlogIntoDB = async (blogID: string, data: Partial<IBlog>) => {
   const blog = await Blog.findById(blogID);
   if (!blog) {
@@ -53,14 +53,16 @@ const deleteBlogFromDB = async (blogId: string) => {
   return { success: true };
 };
 
-///get all blog
+// Get all blogs
 const getAllBlogFromDB = async (query: Record<string, unknown>) => {
   const blogQuery = new QueryBuilder(Blog.find().populate('author'), query)
     .search(blogSearchableFields)
+    .filter() // No need to pass filterableFields here
     .sort()
-    .filter(filterableFields);
+    .paginate()
+    .fields();
 
-  const result = await blogQuery.queryResult;
+  const result = await blogQuery.queryResult();
   return result;
 };
 

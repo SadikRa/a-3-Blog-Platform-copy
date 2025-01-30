@@ -6,9 +6,9 @@ import catchAsync from '../../utils/catchAsync';
 //create blog
 const createBlog = catchAsync(async (req, res) => {
   const user = req.user;
-  const payload = req.body;
+  const data = req.body;
 
-  const result = await blogService.createBlogIntoDB(user, payload);
+  const result = await blogService.createBlogIntoDB(user, data);
 
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,
